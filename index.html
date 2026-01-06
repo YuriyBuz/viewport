@@ -56,10 +56,19 @@
 
         <!-- VIEW 2: SUPPLIER (OCHYM) -->
         <div id="view-supplier" class="hidden animate-fade-in">
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-20">
+            <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-24">
                 <div class="bg-orange-600 p-4 text-white flex justify-between items-center">
                     <h2 class="font-bold text-lg">📦 Внесення залишків</h2>
                     <span class="text-xs bg-orange-700 px-2 py-1 rounded">ПП Очим</span>
+                </div>
+
+                <!-- Вибір відповідального -->
+                <div class="p-4 bg-orange-50 border-b border-orange-100">
+                     <label class="block text-sm font-bold text-orange-800 mb-1">Відповідальний за внесення:</label>
+                     <select id="supplier-name" class="w-full bg-white border border-orange-300 rounded-lg p-3 text-lg font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <option value="Островський О.Ю">Островський О.Ю</option>
+                        <option value="Інший">Інший</option>
+                    </select>
                 </div>
                 
                 <div id="supplier-list" class="p-4 space-y-4">
@@ -69,9 +78,14 @@
 
             <!-- Sticky Footer Supplier -->
             <div class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-lg z-50">
-                <div class="container mx-auto max-w-2xl">
-                    <button onclick="confirmStockSend()" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3.5 rounded-lg shadow active:scale-95 transition-transform flex justify-center items-center gap-2 text-lg">
-                        <span>Відправити залишки</span>
+                <div class="container mx-auto max-w-2xl grid grid-cols-3 gap-3">
+                     <!-- Кнопка очистки -->
+                     <button onclick="clearInputs('supplier-list')" class="col-span-1 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold py-3.5 rounded-lg transition-colors border border-orange-300">
+                        Очистити
+                    </button>
+                    <!-- Кнопка відправки -->
+                    <button onclick="confirmStockSend()" class="col-span-2 bg-orange-600 hover:bg-orange-700 text-white font-bold py-3.5 rounded-lg shadow active:scale-95 transition-transform flex justify-center items-center gap-2 text-lg">
+                        <span>Відправити</span>
                     </button>
                 </div>
             </div>
@@ -79,7 +93,7 @@
 
         <!-- VIEW 3: CUSTOMER (FOOD LINE) -->
         <div id="view-customer" class="hidden animate-fade-in">
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-20">
+            <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-24">
                 <div class="bg-blue-600 p-4 text-white">
                     <h2 class="font-bold text-lg">🛒 Замовлення пляшки</h2>
                 </div>
@@ -104,13 +118,19 @@
 
             <!-- Sticky Footer Customer -->
             <div class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-lg z-50">
-                <div class="container mx-auto max-w-2xl grid grid-cols-2 gap-3">
-                    <button onclick="copyOrderText()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-lg transition-colors border border-slate-300">
-                        Копіювати
+                <div class="container mx-auto max-w-2xl grid grid-cols-3 gap-3">
+                     <!-- Кнопка очистки -->
+                     <button onclick="clearInputs('customer-list')" class="col-span-1 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold py-3 rounded-lg transition-colors border border-orange-300">
+                        Очистити
                     </button>
-                    <button onclick="confirmOrderSend()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow active:scale-95 transition-transform">
-                        Відправити
-                    </button>
+                    <div class="col-span-2 grid grid-cols-2 gap-2">
+                        <button onclick="copyOrderText()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-lg transition-colors border border-slate-300">
+                            Копія
+                        </button>
+                        <button onclick="confirmOrderSend()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow active:scale-95 transition-transform">
+                            Відправити
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -141,7 +161,7 @@
 
     <script>
         // ВСТАВТЕ ВАШЕ ПОСИЛАННЯ ТУТ
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJNIDzH3CsS8cO6r04nVkB3VhhbvfWrTu3sawGxo4vH_eZ3xvNHI6KgvnTBkZhejKbNw/exec'; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzo5O4kz8tAje1lm5k74T5xdUrkUL8DeRdmjTzFEvD-b9H1CDSIsOEZ935GYa3cDH93dA/exec'; 
 
         // State
         let supplierDB = [];
@@ -174,7 +194,8 @@
 
         // --- RENDERING ---
         function formatNum(num) {
-            return num.toLocaleString('uk-UA'); // 1 000
+            // Форматування з пробілами (7 056)
+            return num.toLocaleString('uk-UA').replace(/,/g, ' '); 
         }
 
         function renderSupplierList(items) {
@@ -235,7 +256,8 @@
                         <span class="font-bold text-slate-800 w-2/3 leading-tight text-sm sm:text-base">${item.name}</span>
                         <div class="text-right">
                             <span class="block text-[10px] text-slate-400 uppercase">Склад Очим:</span>
-                            <span class="font-bold text-sm ${stockClass}">${formatNum(stockBox)} к / ${formatNum(stockVal)} ш</span>
+                            <!-- Формат: 14 кор. / 7 056 шт -->
+                            <span class="font-bold text-sm ${stockClass}">${formatNum(stockBox)} кор. / ${formatNum(stockVal)} шт</span>
                         </div>
                     </div>
                     <div class="text-xs text-slate-500 mb-3 flex gap-2">
@@ -243,17 +265,22 @@
                     </div>
                     <div class="grid grid-cols-2 gap-4 mt-2">
                         <div class="relative">
-                            <input type="number" data-name="${item.name}" data-art="${item.art}" data-inbox="${item.inBox}" 
+                            <input type="number" data-name="${item.name}" data-art="${item.art}" data-inbox="${item.inBox}" data-stockpcs="${stockVal}" data-stockbox="${stockBox}"
                                    class="ord-box w-full p-3 border-2 border-slate-200 rounded-lg font-bold text-lg text-center bg-white focus:border-blue-500 outline-none shadow-sm" 
                                    placeholder="0" oninput="syncInputs(this, 'box')">
                             <span class="absolute top-1 left-2 text-[9px] text-slate-400 font-bold uppercase tracking-widest">Замовлення (кор)</span>
                         </div>
                         <div class="relative">
-                            <input type="number" data-name="${item.name}" data-art="${item.art}" data-inbox="${item.inBox}" 
+                            <input type="number" data-name="${item.name}" data-art="${item.art}" data-inbox="${item.inBox}" data-stockpcs="${stockVal}" data-stockbox="${stockBox}"
                                    class="ord-pcs w-full p-3 border-2 border-slate-100 rounded-lg text-lg text-center bg-slate-50 focus:border-blue-500 outline-none text-slate-600" 
                                    placeholder="0" oninput="syncInputs(this, 'pcs')">
                              <span class="absolute top-1 left-2 text-[9px] text-slate-400 font-bold uppercase tracking-widest">Замовлення (шт)</span>
                         </div>
+                    </div>
+                    <!-- Попередження -->
+                    <div class="warning-msg hidden mt-2 text-xs text-red-600 font-bold bg-red-50 p-2 rounded border border-red-200 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <span>Замовлення перевищує залишок!</span>
                     </div>
                 `;
                 container.appendChild(div);
@@ -263,19 +290,49 @@
         // --- LOGIC ---
         function syncInputs(el, source) {
             const parent = el.closest('.grid');
+            const container = el.closest('.bg-slate-50');
             const inBox = parseInt(el.dataset.inbox);
+            const stockPcs = parseInt(el.dataset.stockpcs) || 0;
             const inputs = parent.querySelectorAll('input');
             const boxInput = inputs[0];
             const pcsInput = inputs[1];
 
+            // 1. Calculate values
+            let valPcs = 0;
             if (source === 'box') {
                 const val = parseInt(el.value) || 0;
-                pcsInput.value = val === 0 ? '' : val * inBox;
+                valPcs = val === 0 ? 0 : val * inBox;
+                pcsInput.value = val === 0 ? '' : valPcs;
             } else {
                 const val = parseInt(el.value) || 0;
+                valPcs = val;
                 const boxes = (val / inBox).toFixed(1);
                 boxInput.value = val === 0 ? '' : (val % inBox === 0 ? val / inBox : boxes);
             }
+
+            // 2. Warning Logic (Only for Customer View)
+            if (container.querySelector('.warning-msg')) {
+                const warningDiv = container.querySelector('.warning-msg');
+                if (valPcs > stockPcs) {
+                    warningDiv.classList.remove('hidden');
+                    boxInput.classList.add('border-red-500', 'text-red-600');
+                    pcsInput.classList.add('border-red-500', 'text-red-600');
+                } else {
+                    warningDiv.classList.add('hidden');
+                    boxInput.classList.remove('border-red-500', 'text-red-600');
+                    pcsInput.classList.remove('border-red-500', 'text-red-600');
+                }
+            }
+        }
+        
+        function clearInputs(containerId) {
+            const inputs = document.querySelectorAll(`#${containerId} input`);
+            inputs.forEach(i => {
+                i.value = '';
+                i.classList.remove('border-red-500', 'text-red-600');
+            });
+            const warnings = document.querySelectorAll(`#${containerId} .warning-msg`);
+            warnings.forEach(w => w.classList.add('hidden'));
         }
 
         async function fetchData() {
@@ -330,6 +387,7 @@
         // Supplier Logic
         function confirmStockSend() {
             const inputs = document.querySelectorAll('#supplier-list input.inp-box');
+            const supplierName = document.getElementById('supplier-name').value;
             let count = 0;
             let summary = "<ul class='list-disc pl-4 mt-2 space-y-1'>";
             
@@ -345,12 +403,16 @@
 
             if(count === 0) return showToast("⚠️ Ви нічого не внесли!");
 
-            openModal("Відправити залишки?", `Ви вносите дані по <b>${count}</b> позиціям:${summary}`, submitStock);
+            openModal("Відправити залишки?", `
+                <p class="mb-2">Відповідальний: <b>${supplierName}</b></p>
+                Ви вносите дані по <b>${count}</b> позиціям:${summary}
+            `, submitStock);
         }
 
         async function submitStock() {
             setLoading(true);
             const inputs = document.querySelectorAll('#supplier-list input.inp-box');
+            const supplierName = document.getElementById('supplier-name').value;
             let updates = [];
             inputs.forEach(inp => {
                 const pcsInp = inp.closest('.grid').querySelectorAll('input')[1];
@@ -361,7 +423,7 @@
 
             await fetch(SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify({ type: 'save_stock', updates: updates })
+                body: JSON.stringify({ type: 'save_stock', updates: updates, supplierName: supplierName })
             });
 
             setLoading(false);
@@ -383,7 +445,12 @@
                 const pcsInp = inp.closest('.grid').querySelectorAll('input')[1];
                 if (inp.value > 0 || pcsInp.value > 0) {
                     const name = inp.dataset.name;
-                    summary += `<li><b>${name}:</b> ${inp.value} кор (${pcsInp.value} шт)</li>`;
+                    const stockPcs = parseInt(inp.dataset.stockpcs) || 0;
+                    const orderPcs = parseInt(pcsInp.value) || 0;
+                    let warn = "";
+                    if(orderPcs > stockPcs) warn = " <b class='text-red-600'>(> залишку!)</b>";
+                    
+                    summary += `<li><b>${name}:</b> ${inp.value} кор (${pcsInp.value} шт)${warn}</li>`;
                     count++;
                 }
             });
@@ -462,7 +529,6 @@
         const dateEl = document.getElementById('dateDisplay');
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit' };
-        // Capitalize first letter
         const dateStr = now.toLocaleDateString('uk-UA', options);
         dateEl.innerText = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
 
