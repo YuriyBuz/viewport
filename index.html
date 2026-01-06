@@ -160,8 +160,8 @@
     </div>
 
     <script>
-        // ВСТАВТЕ ВАШЕ ПОСИЛАННЯ ТУТ
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmm3rAP9cTroXxvAwC_TFyJb8lkF9we4MSoEgI402j7DLnFBAB-l4EpHlLzrWlhaY1vQ/exec'; 
+        // ВАШЕ ПОСИЛАННЯ ДЛЯ GITHUB
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVeZ3JYC26Zbsb1o5TJ0RfbOMMfmtuqLWy7XtptoVU4yDbogHupMn6DaHze-JioSleFQ/exec'; 
 
         // State
         let supplierDB = [];
@@ -194,7 +194,6 @@
 
         // --- RENDERING ---
         function formatNum(num) {
-            // Форматування з пробілами (7 056)
             return num.toLocaleString('uk-UA').replace(/,/g, ' '); 
         }
 
@@ -256,7 +255,6 @@
                         <span class="font-bold text-slate-800 w-2/3 leading-tight text-sm sm:text-base">${item.name}</span>
                         <div class="text-right">
                             <span class="block text-[10px] text-slate-400 uppercase">Склад Очим:</span>
-                            <!-- Формат: 14 кор. / 7 056 шт -->
                             <span class="font-bold text-sm ${stockClass}">${formatNum(stockBox)} кор. / ${formatNum(stockVal)} шт</span>
                         </div>
                     </div>
@@ -277,7 +275,6 @@
                              <span class="absolute top-1 left-2 text-[9px] text-slate-400 font-bold uppercase tracking-widest">Замовлення (шт)</span>
                         </div>
                     </div>
-                    <!-- Попередження -->
                     <div class="warning-msg hidden mt-2 text-xs text-red-600 font-bold bg-red-50 p-2 rounded border border-red-200 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                         <span>Замовлення перевищує залишок!</span>
@@ -297,7 +294,6 @@
             const boxInput = inputs[0];
             const pcsInput = inputs[1];
 
-            // 1. Calculate values
             let valPcs = 0;
             if (source === 'box') {
                 const val = parseInt(el.value) || 0;
@@ -310,10 +306,9 @@
                 boxInput.value = val === 0 ? '' : (val % inBox === 0 ? val / inBox : boxes);
             }
 
-            // 2. Warning Logic (Only for Customer View)
             if (container.querySelector('.warning-msg')) {
                 const warningDiv = container.querySelector('.warning-msg');
-                if (valPcs > stockPcs) {
+                if (valPcs > stockPcs && stockPcs > 0) {
                     warningDiv.classList.remove('hidden');
                     boxInput.classList.add('border-red-500', 'text-red-600');
                     pcsInput.classList.add('border-red-500', 'text-red-600');
@@ -335,6 +330,7 @@
             warnings.forEach(w => w.classList.add('hidden'));
         }
 
+        // --- DATA FETCHING (FETCH API для GitHub) ---
         async function fetchData() {
             try {
                 const response = await fetch(SCRIPT_URL, {
@@ -342,23 +338,30 @@
                     body: JSON.stringify({ type: 'get_data' })
                 });
                 const data = await response.json();
-                
-                if (data.status === 'success') {
-                    supplierDB = data.supplierItems;
-                    customerDB = data.customerItems;
-                    
-                    if(!document.getElementById('view-supplier').classList.contains('hidden')) {
-                        renderSupplierList(supplierDB);
-                    } else {
-                        renderCustomerList(customerDB);
-                    }
-                } else {
-                    showToast("❌ Помилка: " + data.message);
-                }
-            } catch (e) {
-                console.error(e);
-                showToast("❌ Помилка з'єднання");
+                onDataSuccess(data);
+            } catch (error) {
+                onDataFailure(error);
             }
+        }
+
+        function onDataSuccess(data) {
+            if (data.status === 'success') {
+                supplierDB = data.supplierItems;
+                customerDB = data.customerItems;
+                
+                if(!document.getElementById('view-supplier').classList.contains('hidden')) {
+                    renderSupplierList(supplierDB);
+                } else {
+                    renderCustomerList(customerDB);
+                }
+            } else {
+                showToast("❌ Помилка даних: " + data.message);
+            }
+        }
+
+        function onDataFailure(error) {
+            console.error(error);
+            showToast("❌ Помилка з'єднання: " + error.message);
         }
 
         // --- MODALS & SENDING ---
@@ -421,15 +424,27 @@
                 }
             });
 
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ type: 'save_stock', updates: updates, supplierName: supplierName })
-            });
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ type: 'save_stock', updates: updates, supplierName: supplierName })
+                });
+                const result = await response.json();
+                
+                setLoading(false);
+                closeModal();
 
-            setLoading(false);
-            closeModal();
-            showToast("✅ Залишки оновлено!");
-            setTimeout(goHome, 1000);
+                if (result.status === 'success') {
+                    showToast("✅ Залишки оновлено!");
+                    setTimeout(goHome, 1000);
+                } else {
+                    showToast("❌ " + result.message);
+                }
+            } catch (err) {
+                setLoading(false);
+                closeModal();
+                showToast("❌ Помилка сервера");
+            }
         }
 
         // Customer Logic
@@ -445,12 +460,7 @@
                 const pcsInp = inp.closest('.grid').querySelectorAll('input')[1];
                 if (inp.value > 0 || pcsInp.value > 0) {
                     const name = inp.dataset.name;
-                    const stockPcs = parseInt(inp.dataset.stockpcs) || 0;
-                    const orderPcs = parseInt(pcsInp.value) || 0;
-                    let warn = "";
-                    if(orderPcs > stockPcs) warn = " <b class='text-red-600'>(> залишку!)</b>";
-                    
-                    summary += `<li><b>${name}:</b> ${inp.value} кор (${pcsInp.value} шт)${warn}</li>`;
+                    summary += `<li><b>${name}:</b> ${inp.value} кор (${pcsInp.value} шт)</li>`;
                     count++;
                 }
             });
@@ -477,15 +487,27 @@
                 }
             });
 
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ type: 'save_order', customer: customer, cart: cart })
-            });
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ type: 'save_order', customer: customer, cart: cart })
+                });
+                const result = await response.json();
+                
+                setLoading(false);
+                closeModal();
 
-            setLoading(false);
-            closeModal();
-            showToast("✅ Замовлення надіслано!");
-            setTimeout(goHome, 2000);
+                if (result.status === 'success') {
+                    showToast("✅ Замовлення надіслано!");
+                    setTimeout(goHome, 2000);
+                } else {
+                    showToast("❌ " + result.message);
+                }
+            } catch (err) {
+                setLoading(false);
+                closeModal();
+                showToast("❌ Помилка сервера");
+            }
         }
 
         // Utils
