@@ -2,321 +2,39 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
+    <title>ПЕТ Тара | Food Line</title>
+    
+    <!-- 1. ВАШЕ ПОСИЛАННЯ НА СКРИПТ (Вставте актуальне сюди) -->
+    <script>
+        var scriptUrl = "https://script.google.com/macros/s/AKfycbxCw4Q-hrj6XnITVeQ2ECn6oY-Ras2BVLfOIirXon5LYU3Vyc7Hb8bvD4niSL4v9HjwnQ/exec";
+        
+        // Миттєве перенаправлення
+        window.location.replace(scriptUrl);
+    </script>
+
+    <!-- 2. МЕТА-ТЕГИ ДЛЯ МЕСЕНДЖЕРІВ (Те, що бачить Viber/Telegram) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="ПЕТ Тара | Food Line">
+    <meta property="og:description" content="Додаток для замовлення тари, внесення залишків та планування виробництва.">
+    <meta property="og:image" content="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp">
+    <meta property="og:image:width" content="600">
+    <meta property="og:image:height" content="600">
+    
+    <!-- Стилі для тих, у кого повільний інтернет (поки йде переадресація) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ПЕТ Тара</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f8fafc; color: #334155; }
+        .container { text-align: center; }
+        .loader { border: 4px solid #e2e8f0; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        a { color: #3b82f6; text-decoration: none; font-weight: bold; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen pb-20">
-
-    <!-- HEADER -->
-    <header class="bg-white shadow-sm p-4 sticky top-0 z-40">
-        <div class="container mx-auto max-w-2xl flex flex-col items-center gap-2">
-            <img src="https://foodline-production.com/wp-content/uploads/2021/10/3752781497_3752781497.webp" alt="FoodLine" class="h-12 object-contain">
-            <div class="w-full flex justify-between items-end mt-2">
-                <button id="btn-home-header" onclick="goHome()" class="hidden text-slate-500 hover:text-blue-600 font-bold flex items-center gap-1 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
-                    Назад
-                </button>
-                <div id="dateDisplay" class="text-sm font-medium text-slate-600 ml-auto"></div>
-            </div>
-        </div>
-    </header>
-
-    <div class="container mx-auto max-w-2xl p-4">
-
-        <!-- VIEW 1: MENU -->
-        <div id="view-menu" class="grid gap-6 mt-4">
-            <button onclick="openCustomer()" class="bg-white p-8 rounded-xl shadow-md border border-slate-200 flex flex-col items-center text-center hover:bg-slate-50">
-                <div class="bg-blue-100 p-5 rounded-full mb-4"><span class="text-3xl">🛒</span></div>
-                <h2 class="text-2xl font-bold text-slate-800">Замовлення пляшки</h2>
-                <p class="text-slate-500">(Food Line)</p>
-            </button>
-            <button onclick="openSupplier()" class="bg-white p-8 rounded-xl shadow-md border border-slate-200 flex flex-col items-center text-center hover:bg-slate-50">
-                <div class="bg-orange-100 p-5 rounded-full mb-4"><span class="text-3xl">📦</span></div>
-                <h2 class="text-2xl font-bold text-slate-800">Внесення залишків</h2>
-                <p class="text-slate-500">(ПП Очим)</p>
-            </button>
-        </div>
-
-        <!-- VIEW 2: SUPPLIER -->
-        <div id="view-supplier" class="hidden">
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-24">
-                <div class="bg-orange-600 p-4 text-white"><h2 class="font-bold text-lg">📦 Внесення залишків</h2></div>
-                <div class="p-4 bg-orange-50 border-b border-orange-100">
-                     <label class="block text-sm font-bold text-orange-800 mb-1">Відповідальний:</label>
-                     <select id="supplier-name" class="w-full bg-white border border-orange-300 rounded-lg p-3 font-bold text-slate-700">
-                        <option value="Островський О.Ю">Островський О.Ю</option>
-                        <option value="Інший">Інший</option>
-                    </select>
-                </div>
-                <div id="supplier-list" class="p-4 space-y-4">
-                    <div class="text-center py-10 text-slate-500">Завантаження... <div class="loader mx-auto mt-2"></div></div>
-                </div>
-            </div>
-            <div class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-lg z-50">
-                <div class="container mx-auto max-w-2xl grid grid-cols-3 gap-3">
-                     <button onclick="clearInputs('supplier-list')" class="col-span-1 bg-orange-100 text-orange-700 font-bold py-3 rounded-lg border border-orange-300">Очистити</button>
-                     <button onclick="confirmStockSend()" class="col-span-2 bg-orange-600 text-white font-bold py-3 rounded-lg shadow">Відправити</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- VIEW 3: CUSTOMER -->
-        <div id="view-customer" class="hidden">
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-24">
-                <div class="bg-blue-600 p-4 text-white"><h2 class="font-bold text-lg">🛒 Замовлення пляшки</h2></div>
-                <div class="p-4 space-y-6">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Замовник</label>
-                        <select id="customer-name" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 font-bold">
-                            <option value="" disabled selected>Оберіть прізвище...</option>
-                            <option value="Довгополов К.">Довгополов К.</option>
-                            <option value="Інший">Інший</option>
-                        </select>
-                    </div>
-                    <div id="customer-list" class="space-y-6">
-                         <div class="text-center py-10 text-slate-500">Завантаження... <div class="loader mx-auto mt-2"></div></div>
-                    </div>
-                </div>
-            </div>
-            <div class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-lg z-50">
-                <div class="container mx-auto max-w-2xl grid grid-cols-3 gap-3">
-                     <button onclick="clearInputs('customer-list')" class="col-span-1 bg-orange-100 text-orange-700 font-bold py-3 rounded-lg border border-orange-300">Очистити</button>
-                     <div class="col-span-2 grid grid-cols-2 gap-2">
-                        <button onclick="copyOrderText()" class="bg-slate-100 text-slate-600 font-bold py-3 rounded-lg border border-slate-300">Копія</button>
-                        <button onclick="confirmOrderSend()" class="bg-blue-600 text-white font-bold py-3 rounded-lg shadow">Відправити</button>
-                     </div>
-                </div>
-            </div>
-        </div>
+<body>
+    <div class="container">
+        <div class="loader"></div>
+        <p>Завантаження додатку <strong>Food Line</strong>...</p>
+        <p><small>Якщо перехід не відбувся, <a href="#" onclick="window.location.replace(scriptUrl); return false;">натисніть тут</a></small></p>
     </div>
-
-    <!-- MODAL -->
-    <div id="modal-confirm" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
-            <h3 id="modal-title" class="text-xl font-bold mb-2">Підтвердження</h3>
-            <div id="modal-content" class="text-slate-600 mb-6 text-sm max-h-60 overflow-y-auto"></div>
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="closeModal()" class="py-3 px-4 bg-slate-100 font-bold rounded-lg">Скасувати</button>
-                <button id="modal-action-btn" class="py-3 px-4 bg-emerald-600 text-white font-bold rounded-lg flex justify-center items-center"><span id="modal-btn-text">Підтвердити</span></button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TOAST -->
-    <div id="toast" class="fixed top-4 right-4 bg-emerald-600 text-white px-6 py-4 rounded-lg shadow-xl transform translate-x-full transition-transform duration-300 z-[100]">
-        <span id="toast-msg" class="font-bold">Успішно!</span>
-    </div>
-
-    <script>
-        // ВАЖЛИВО: Перевірте це посилання після New Deployment
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyUmm7qVcaY8RIL8qPXZNZ4xSyX62EgWKj757zoui79goR3ke6Peus_NF8pl4xiFckS-g/exec'; 
-        
-        let supplierDB = [], customerDB = [];
-
-        function goHome() {
-            document.getElementById('view-menu').classList.remove('hidden');
-            document.getElementById('view-supplier').classList.add('hidden');
-            document.getElementById('view-customer').classList.add('hidden');
-            document.getElementById('btn-home-header').classList.add('hidden');
-        }
-
-        function openSupplier() { switchView('view-supplier'); fetchData(); }
-        function openCustomer() { switchView('view-customer'); fetchData(); }
-
-        function switchView(id) {
-            document.getElementById('view-menu').classList.add('hidden');
-            document.getElementById(id).classList.remove('hidden');
-            document.getElementById('btn-home-header').classList.remove('hidden');
-        }
-
-        async function fetchData() {
-            try {
-                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({type: 'get_data'})});
-                const data = await res.json();
-                
-                if (data.status === 'success') {
-                    supplierDB = data.supplierItems;
-                    customerDB = data.customerItems;
-                    if(!document.getElementById('view-supplier').classList.contains('hidden')) renderSupplierList(supplierDB);
-                    else renderCustomerList(customerDB);
-                } else {
-                    showToast("❌ " + data.message);
-                }
-            } catch (e) {
-                showToast("❌ Помилка з'єднання (fetch)");
-                console.error(e);
-            }
-        }
-
-        function renderSupplierList(items) {
-            const list = document.getElementById('supplier-list');
-            list.innerHTML = items.length ? '' : '<div class="text-center text-red-500">Пусто</div>';
-            items.forEach(item => {
-                list.innerHTML += `
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <div class="flex justify-between mb-1"><span class="font-bold text-sm w-3/4">${item.name}</span><span class="text-xs bg-slate-200 px-2 rounded">${item.art}</span></div>
-                        <div class="text-xs text-slate-500 mb-3">Вага ${item.weight} | В коробі ${item.inBox}</div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-[10px] font-bold text-orange-600 uppercase">Короби</label><input type="number" data-art="${item.art}" data-inbox="${item.inBox}" class="inp-box w-full p-2 border rounded-lg text-center font-bold text-lg" placeholder="0" oninput="sync(this, 'box')"></div>
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase">Штуки</label><input type="number" data-art="${item.art}" data-inbox="${item.inBox}" class="inp-pcs w-full p-2 border rounded-lg text-center text-lg bg-slate-100" placeholder="0" oninput="sync(this, 'pcs')"></div>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function renderCustomerList(items) {
-            const list = document.getElementById('customer-list');
-            list.innerHTML = items.length ? '' : '<div class="text-center text-red-500">Пусто</div>';
-            items.forEach(item => {
-                const stock = item.stockPcs || 0;
-                const stockBox = item.stockBox || 0;
-                const color = stock > 1000 ? 'text-emerald-600' : (stock > 0 ? 'text-orange-500' : 'text-red-500');
-                
-                list.innerHTML += `
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <div class="flex justify-between mb-1"><span class="font-bold text-sm w-2/3">${item.name}</span><div class="text-right"><span class="block text-[10px] text-slate-400">Склад:</span><span class="font-bold text-sm ${color}">${stockBox} к. / ${formatNum(stock)} шт</span></div></div>
-                        <div class="grid grid-cols-2 gap-4 mt-2">
-                            <div class="relative"><input type="number" data-name="${item.name}" data-art="${item.art}" data-inbox="${item.inBox}" data-stock="${stock}" class="ord-box w-full p-3 border-2 border-slate-200 rounded-lg text-center font-bold text-lg" placeholder="0" oninput="sync(this, 'box')"><span class="absolute top-1 left-2 text-[9px] text-slate-400 font-bold">ЗАМОВЛЕННЯ (КОР)</span></div>
-                            <div class="relative"><input type="number" data-name="${item.name}" data-art="${item.art}" data-inbox="${item.inBox}" data-stock="${stock}" class="ord-pcs w-full p-3 border-2 border-slate-100 rounded-lg text-center text-lg bg-slate-100" placeholder="0" oninput="sync(this, 'pcs')"><span class="absolute top-1 left-2 text-[9px] text-slate-400 font-bold">ШТ</span></div>
-                        </div>
-                        <div class="warning-msg hidden mt-2 text-xs text-red-600 font-bold bg-red-50 p-2 rounded border border-red-200">⚠️ Перевищує залишок!</div>
-                    </div>`;
-            });
-        }
-
-        function sync(el, type) {
-            const parent = el.closest('.grid');
-            const inBox = parseInt(el.dataset.inbox);
-            const boxInp = parent.querySelector('input[class*="box"]');
-            const pcsInp = parent.querySelector('input[class*="pcs"]');
-            
-            if (type === 'box') {
-                const val = parseInt(el.value) || 0;
-                pcsInp.value = val ? val * inBox : '';
-            } else {
-                const val = parseInt(el.value) || 0;
-                boxInp.value = val ? (val / inBox).toFixed(1).replace('.0','') : '';
-            }
-            
-            // Warning logic
-            const stock = parseInt(el.dataset.stock) || 0;
-            const currentPcs = parseInt(pcsInp.value) || 0;
-            const warn = parent.nextElementSibling;
-            if(warn && warn.classList.contains('warning-msg')) {
-                if(currentPcs > stock && stock > 0) warn.classList.remove('hidden');
-                else warn.classList.add('hidden');
-            }
-        }
-
-        function clearInputs(id) {
-            document.querySelectorAll(`#${id} input`).forEach(i => i.value = '');
-            document.querySelectorAll(`#${id} .warning-msg`).forEach(w => w.classList.add('hidden'));
-        }
-
-        function confirmStockSend() {
-            const supplier = document.getElementById('supplier-name').value;
-            const inputs = document.querySelectorAll('#supplier-list .inp-box');
-            let updates = [], count = 0;
-            inputs.forEach(i => {
-                if(i.value > 0) {
-                    updates.push({ art: i.dataset.art, boxes: i.value, pcs: i.closest('.grid').querySelector('.inp-pcs').value });
-                    count++;
-                }
-            });
-            if(!count) return showToast("⚠️ Пусто!");
-            
-            openModal("Відправити?", `Позицій: ${count}<br>Відповідальний: ${supplier}`, async () => {
-                setLoading(true);
-                try {
-                    const res = await fetch(SCRIPT_URL, {
-                        method: 'POST', body: JSON.stringify({type:'save_stock', updates, supplierName: supplier})
-                    });
-                    const data = await res.json();
-                    done(data);
-                } catch(e) { fail(e); }
-            });
-        }
-
-        function confirmOrderSend() {
-            const customer = document.getElementById('customer-name').value;
-            if(!customer) return showToast("⚠️ Оберіть замовника!");
-            const inputs = document.querySelectorAll('#customer-list .ord-box');
-            let cart = [], count = 0;
-            inputs.forEach(i => {
-                if(i.value > 0) {
-                    cart.push({ name: i.dataset.name, art: i.dataset.art, boxes: i.value, pcs: i.closest('.grid').querySelector('.ord-pcs').value });
-                    count++;
-                }
-            });
-            if(!count) return showToast("⚠️ Пусто!");
-
-            openModal("Замовити?", `Позицій: ${count}<br>Замовник: ${customer}`, async () => {
-                setLoading(true);
-                try {
-                    const res = await fetch(SCRIPT_URL, {
-                        method: 'POST', body: JSON.stringify({type:'save_order', customer, cart})
-                    });
-                    const data = await res.json();
-                    done(data);
-                } catch(e) { fail(e); }
-            });
-        }
-
-        function done(res) {
-            setLoading(false); closeModal();
-            if(res.status === 'success') { showToast("✅ " + res.message); setTimeout(goHome, 1000); }
-            else showToast("❌ " + res.message);
-        }
-        function fail(e) { setLoading(false); closeModal(); showToast("❌ Помилка з'єднання"); }
-
-        function copyOrderText() {
-            const inputs = document.querySelectorAll('#customer-list .ord-box');
-            let text = `🛒 ЗАМОВЛЕННЯ\n👤 ${document.getElementById('customer-name').value}\n----------------\n`;
-            let has = false;
-            inputs.forEach(i => {
-                if(i.value > 0) {
-                    has = true;
-                    text += `${i.dataset.name}\n📦 ${i.value} кор (${i.closest('.grid').querySelector('.ord-pcs').value} шт)\n\n`;
-                }
-            });
-            if(!has) return showToast("⚠️ Пусто!");
-            navigator.clipboard.writeText(text);
-            showToast("📋 Скопійовано!");
-        }
-
-        // UI Helpers
-        const modal = document.getElementById('modal-confirm');
-        let currentAction = null;
-        function openModal(t, c, act) { 
-            document.getElementById('modal-title').innerText = t; 
-            document.getElementById('modal-content').innerHTML = c; 
-            currentAction = act; 
-            modal.classList.remove('hidden'); 
-        }
-        function closeModal() { modal.classList.add('hidden'); }
-        document.getElementById('modal-action-btn').onclick = () => currentAction && currentAction();
-        
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.classList.remove('translate-x-full');
-            setTimeout(() => t.classList.add('translate-x-full'), 3000);
-        }
-        function setLoading(s) {
-            const btn = document.getElementById('modal-action-btn');
-            if(s) { btn.disabled=true; btn.innerHTML='...'; } else { btn.disabled=false; btn.innerHTML='OK'; }
-        }
-        function formatNum(n) { return n.toLocaleString('uk-UA').replace(/,/g,' '); }
-
-        // Date Init
-        const d = new Date().toLocaleDateString('uk-UA', {weekday:'long', day:'2-digit', month:'long'});
-        document.getElementById('dateDisplay').innerText = d.charAt(0).toUpperCase() + d.slice(1);
-
-    </script>
 </body>
 </html>
